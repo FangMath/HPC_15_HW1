@@ -1,23 +1,14 @@
-EXECUTABLES = sr sr2 pingpong pingpong_array pingpong_nonblocking
+EXECUTABLES = int_ring jacobi-mpi.c
 COMPILER = mpicc
 FLAGS = -O3 -Wall
 
 all: $(EXECUTABLES)
 
-sr: sr.c
-	$(COMPILER) $(FLAGS) sr.c -o sr
+int_ring: int_ring.c
+	$(COMPILER) $(FLAGS) int_ring.c -o int_ring 
 
-sr2: sr2.c
-	$(COMPILER) $(FLAGS) sr2.c -o sr2
-
-pingpong: pingpong.c
-	$(COMPILER) $(FLAGS) $^ -o pingpong
-
-pingpong_array: pingpong_array.c
-	$(COMPILER) $(FLAGS) $^ -o pingpong_array
-
-pingpong_nonblocking: pingpong_nonblocking.c
-	$(COMPILER) $(FLAGS) $^ -o pingpong_nonblocking
+jacobi-mpi: jacobi-mpi.c
+	$(COMPILER) $(FLAGS) jacobi-mpi.c -o jacobi-mpi
 
 clean:
 	rm -rf $(EXECUTABLES)
