@@ -32,7 +32,8 @@ int main( int argc, char *argv[])
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &num_proc); 
 
-  int msgN = 1;
+  int msgN = 1e7/8;
+
   double *message_out = calloc(msgN, sizeof(double));
   double *message_in = calloc(msgN, sizeof(double));
 
@@ -63,6 +64,7 @@ int main( int argc, char *argv[])
             if (nN ==0) //head processor
             {
                 for(n = 0; n < msgN; ++n) message_out[n] = 0;
+                printf("Data size is %fMB\n", msgN*sizeof(double)/1e6);
             }
             else
             {
@@ -71,59 +73,29 @@ int main( int argc, char *argv[])
 
             MPI_Send(message_out, msgN, MPI_DOUBLE, destination, tag, MPI_COMM_WORLD);
             MPI_Recv(message_in,  msgN, MPI_DOUBLE, origin, tag, MPI_COMM_WORLD, &status);
+           // printf("The %dth communication, rank %d received from %d the message %d\n", nN, rank, origin, (int)*message_in);
         }
 
         else //other processors
         {
 
             MPI_Recv(message_in,  msgN, MPI_DOUBLE, origin, tag, MPI_COMM_WORLD, &status);
+            //printf("The %dth communication, rank %d received from %d the message %d\n", nN, rank, origin, (int)*message_in);
+
             for(n = 0; n < msgN; ++n) message_out[n] = message_in[n] + rank;
             MPI_Send(message_out, msgN, MPI_DOUBLE, destination, tag, MPI_COMM_WORLD);
         }
 
-//      printf("rank %d sent to %d the message %d\n", rank, destination, (int)*message_out);
-//      printf("rank %d received from %d the message %d\n", rank, origin, (int)*message_in);
     }
 
-
-
-  /*
-   * Write output to a file
-   */
-  if (msgN == 1)
-  {
-//     printf("rank %d sent to %d the message %d\n", rank, destination, (int)*message_out);
-      printf("rank %d received from %d the message %d\n", rank, origin, (int)*message_in);
-
-      //printf("rank %d hosted on %s sent to %d the message %d\n", rank, hostname, destination, (int)*message_out);
-      //printf("rank %d hosted on %s received from %d the message %d\n", rank, hostname, origin, (int)*message_in);
-  }
-  else
-  {
-    FILE* fd = NULL;
-    char filename[256];
-    snprintf(filename, 256, "output%02d.txt", rank);
-    fd = fopen(filename,"w+");
-
-    if(NULL == fd)
-    {
-      printf("Error opening file \n");
-      return 1;
-    }
-
-    fprintf(fd, "rank %d received from %d the message:\n", rank, origin);
-    for(n = 0; n < msgN; ++n)
-      fprintf(fd, "  %d\n", (int)message_in[n]);
-
-    fclose(fd);
-
-  }
-
+//    printf("The %dth communication, rank %d received from %d the message %d\n", nN, rank, origin, (int)*message_in);
   MPI_Finalize();
 
   get_timestamp(&time2);
   double elapsed = timestamp_diff_in_seconds(time1,time2);
-  printf("Time elapsed is %f seconds.\n", elapsed);
+  //printf("Rank %d time elapsed after %d communications is %f seconds.\n", rank, N, elapsed);
+  printf("Rank %d hosted on %s runs time %f seconds.\t", rank, hostname, elapsed);
+  printf("Band width is about %f MB/s\n", msgN*sizeof(double)/1e6/(elapsed/N/num_proc));
 
   free(message_out);
   free(message_in);
