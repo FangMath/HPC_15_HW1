@@ -32,7 +32,7 @@ int main( int argc, char *argv[])
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &num_proc); 
 
-  int msgN = 1e7/8;
+  int msgN = 1; //1e7/8;
 
   double *message_out = calloc(msgN, sizeof(double));
   double *message_in = calloc(msgN, sizeof(double));
@@ -64,7 +64,7 @@ int main( int argc, char *argv[])
             if (nN ==0) //head processor
             {
                 for(n = 0; n < msgN; ++n) message_out[n] = 0;
-                printf("Data size is %fMB\n", msgN*sizeof(double)/1e6);
+//                printf("Data size is %fMB\n", msgN*sizeof(double)/1e6);
             }
             else
             {
@@ -88,14 +88,14 @@ int main( int argc, char *argv[])
 
     }
 
-//    printf("The %dth communication, rank %d received from %d the message %d\n", nN, rank, origin, (int)*message_in);
+    printf("The %dth communication, rank %d received from %d the message %d\n", nN, rank, origin, (int)*message_in);
   MPI_Finalize();
 
   get_timestamp(&time2);
   double elapsed = timestamp_diff_in_seconds(time1,time2);
   //printf("Rank %d time elapsed after %d communications is %f seconds.\n", rank, N, elapsed);
   printf("Rank %d hosted on %s runs time %f seconds.\n", rank, hostname, elapsed);
-  printf("Band width is %f MB/s\n", msgN*sizeof(double)/1e6/(elapsed/N/num_proc));
+//  printf("Band width is %f MB/s\n", msgN*sizeof(double)/1e6/(elapsed/N/num_proc));
 
   free(message_out);
   free(message_in);

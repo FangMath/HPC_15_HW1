@@ -1,4 +1,4 @@
-EXECUTABLES = int_ring jacobi-mpi.c
+EXECUTABLES = int_ring jacobi-mpi
 COMPILER = mpicc
 FLAGS = -O3 -Wall -lrt
 
