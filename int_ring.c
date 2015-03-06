@@ -94,8 +94,8 @@ int main( int argc, char *argv[])
   get_timestamp(&time2);
   double elapsed = timestamp_diff_in_seconds(time1,time2);
   //printf("Rank %d time elapsed after %d communications is %f seconds.\n", rank, N, elapsed);
-  printf("Rank %d hosted on %s runs time %f seconds.\t", rank, hostname, elapsed);
-  printf("Band width is about %f MB/s\n", msgN*sizeof(double)/1e6/(elapsed/N/num_proc));
+  printf("Rank %d hosted on %s runs time %f seconds.\n", rank, hostname, elapsed);
+  printf("Band width is %f MB/s\n", msgN*sizeof(double)/1e6/(elapsed/N/num_proc));
 
   free(message_out);
   free(message_in);
