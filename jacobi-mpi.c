@@ -5,7 +5,6 @@
 #include<math.h>
 #include "util.h"
 #include <mpi.h>
-#define ff() printf("here is fine!\n");
 
 void Jacobi_chunk(double *u, int n, double *A);
 
@@ -16,7 +15,7 @@ int main(int argc, char **argv){
         abort();
     }
 
-    int N, N_iter, n_iter;;
+    int N, N_iter, n_iter, it;
     N = atoi(argv[1]);
     double h = 1. / N;
     N_iter = atoi(argv[2]);
@@ -57,44 +56,52 @@ int main(int argc, char **argv){
     for (n_iter = 0; n_iter < N_iter; ++n_iter){ // terminate after N_iter iterations 
         // do computations
         Jacobi_chunk(u, Np+2, A);
+
         // communications
         if (rank == 0)
         {
             message_out_f = u[Np];
             MPI_Send(&message_out_f, 1, MPI_DOUBLE, rank+1, tag, MPI_COMM_WORLD);
             MPI_Recv(&message_in_b, 1, MPI_DOUBLE, rank+1, tag, MPI_COMM_WORLD, &status);
+//    printf("The %dth iteration, rank %d received from %d the message %f\n", n_iter, rank, rank+1, message_in_b);
             u[Np+1] = message_in_b;
         }
+
         else if (rank == p-1)
         {
             message_out_b = u[1];
             MPI_Send(&message_out_b, 1, MPI_DOUBLE, rank-1, tag, MPI_COMM_WORLD);
             MPI_Recv(&message_in_f, 1, MPI_DOUBLE, rank-1, tag, MPI_COMM_WORLD, &status);
+//    printf("The %dth iteration, rank %d received from %d the message %f\n", n_iter, rank, rank-1, message_in_f);
             u[0] = message_in_f;
         }
+
         else
         {
             message_out_f = u[Np];
+            message_out_b = u[1];
             MPI_Send(&message_out_f, 1, MPI_DOUBLE, rank+1, tag, MPI_COMM_WORLD);
             MPI_Send(&message_out_b, 1, MPI_DOUBLE, rank-1, tag, MPI_COMM_WORLD);
-            MPI_Recv(&message_in_b, 1, MPI_DOUBLE, rank+1, tag, MPI_COMM_WORLD, &status);
-            u[Np+1] = message_in_b;
 
-            message_out_b = u[1];
+            MPI_Recv(&message_in_b, 1, MPI_DOUBLE, rank+1, tag, MPI_COMM_WORLD, &status);
+//    printf("The %dth iteration, rank %d received from %d the message %f\n", n_iter, rank, rank+1, message_in_b);
+
             MPI_Recv(&message_in_f, 1, MPI_DOUBLE, rank-1, tag, MPI_COMM_WORLD, &status);
+//    printf("The %dth iteration, rank %d received from %d the message %f\n", n_iter, rank, rank-1, message_in_f);
+            u[Np+1] = message_in_b;
             u[0] = message_in_f;
         }
     }
 
-//    printf("The %dth communication, rank %d received from %d the message %d\n", nN, rank, origin, (int)*message_in);
-  MPI_Finalize();
+    //verify result is independent of p
+  for (it = 1; it < Np+1; ++it) printf("u[%d]=%f\n ", Np*rank-1+it, u[it]);
 
-//  printf("Rank %d hosted on %s runs time %f seconds.\n", rank, hostname, elapsed);
+  MPI_Finalize();
 
   get_timestamp(&time2);
   double elapsed = timestamp_diff_in_seconds(time1,time2);
 
-  printf("Time elapsed is %f seconds.\n", elapsed);
+  //printf("Time elapsed is %f seconds.\n", elapsed);
 
     free(u);
     return 0;
@@ -109,6 +116,5 @@ void Jacobi_chunk(double *u, int n, double *A){
         u[i] = (1 - (A[1]*old_pre + A[1]*u[i+1]))/A[0];
         old_pre = old_cur;
     }
-    //printf("The u_i are: "); for (int i = 0; i < n; ++i) { printf("%f\t", u[i]); } printf("\n");
 }
 
