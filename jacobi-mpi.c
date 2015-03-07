@@ -15,7 +15,8 @@ int main(int argc, char **argv){
         abort();
     }
 
-    int N, N_iter, n_iter, it;
+    int N, N_iter, n_iter;
+//    int it;
     N = atoi(argv[1]);
     double h = 1. / N;
     N_iter = atoi(argv[2]);
@@ -94,14 +95,15 @@ int main(int argc, char **argv){
     }
 
     //verify result is independent of p
-  for (it = 1; it < Np+1; ++it) printf("u[%d]=%f\n ", Np*rank-1+it, u[it]);
+  //for (it = 1; it < Np+1; ++it) printf("u[%d]=%f\n ", Np*rank-1+it, u[it]);
 
   MPI_Finalize();
 
   get_timestamp(&time2);
   double elapsed = timestamp_diff_in_seconds(time1,time2);
 
-  //printf("Time elapsed is %f seconds.\n", elapsed);
+  if (rank%4 == 0)
+  printf("Time elapsed on rank %d is %f seconds.\n", rank, elapsed);
 
     free(u);
     return 0;
